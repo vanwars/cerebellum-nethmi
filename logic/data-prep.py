@@ -2,7 +2,7 @@ from keras.datasets.mnist import load_data
 from brian2 import seed
 import utils
 from time import sleep
-import models
+from snn import SpikingNeuralNetwork
 
 # loading the mnist dataset
 # help(keras.datasets.mnist.load_data)
@@ -19,7 +19,7 @@ import models
 '''
 2. Filter out some digits (only keep 4, 7, and 9):
 '''
-digits_to_exclude = [0, 2, 3, 5, 6, 8]  # (only 1, 4, 7, and 9 remain)
+digits_to_exclude = [0]  # (1-9 remain)
 for digit in digits_to_exclude:
     training_bitmaps = training_bitmaps[(training_labels != digit)]
     training_labels = training_labels[(training_labels != digit)]
@@ -42,7 +42,7 @@ utils.show_first_n_digits(training_bitmaps, training_labels,
 '''
 5. Define the training and testing proceedure:
 '''
-def train_model(train_items=500, eval_items=1, restore_from_disk=False):
+def train_model(train_items=10, eval_items=9, restore_from_disk=False):
     seed(0)
 
     file_name_of_model = 'trainall_but_0_epoch_1_eineuron_1000'
@@ -50,7 +50,7 @@ def train_model(train_items=500, eval_items=1, restore_from_disk=False):
 
     # Note: putting things in debug mode makes the file enormous and it.
     #       If you do it, use < 100 examples in training data!
-    model = models.CerebellarCircuitModel(debug=False)
+    model = SpikingNeuralNetwork()
 
     if restore_from_disk:
         print('restoring model from disk...')
@@ -65,4 +65,4 @@ def train_model(train_items=500, eval_items=1, restore_from_disk=False):
     model.evaluate(test_bitmaps[:eval_items], test_labels)
 
 
-train_model(train_items=500, restore_from_disk=False)
+train_model(train_items=100, restore_from_disk=False)

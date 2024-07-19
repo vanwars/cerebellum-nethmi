@@ -3,6 +3,7 @@ from brian2 import PoissonGroup, Network, NeuronGroup, SpikeMonitor, \
 import brian2.numpy_ as np
 import numpy
 
+# help(Network)
 
 # Constants:
 n_input = 28*28  # input layer
@@ -112,6 +113,7 @@ class CerebellarCircuitModel():
 
         self.net = Network(app.values())
         self.net.run(0*second)
+        # self.net.restore(filename='trainall_but_0_epoch_1_eineuron_1000')
 
     def __getitem__(self, key):
         return self.net[key]
@@ -124,6 +126,7 @@ class CerebellarCircuitModel():
 
                 if (idx % 100 == 0):
                     print(str(epoch), "_", str(idx))
+                
                 # active mode
                 self.net['PG'].rates = X[idx].ravel()*Hz
                 self.net.run(0.35*second)
@@ -132,10 +135,14 @@ class CerebellarCircuitModel():
                 self.net['PG'].rates = np.zeros(n_input)*Hz
                 self.net.run(0.15*second)
 
-    def evaluate(self, X, test_bitmaps):
+    
+    
+    # not sure what this function does exactly. I think it makes spike
+    # trains out of the test data and saves the data as a python dictionary.
+    # However, I'm unclear re: whether this is an evaluation.
+    def evaluate(self, X, test_labels):
         self.net['S1'].lr = 0  # stdp off
         store_idx = numpy.zeros(10).astype(int)
-
         for idx in range(len(X)):
 
             if (idx % 100 == 0):
@@ -150,9 +157,10 @@ class CerebellarCircuitModel():
             self.net.run(5*second)
 
             file_name = "MNIST_epoch1_eineuron1000_train1to9/spike_dict_label_" + \
-                str(test_bitmaps[idx]) + "_instance_" + \
-                str(store_idx[test_bitmaps[idx]])+".txt"
+                str(store_idx[idx]) + "_instance_" + \
+                str(store_idx[test_labels[idx]])+".txt"
+            print(file_name)
             f = open(file_name, "w")
             f.write(str(mon.spike_trains()))
             f.close()
-            store_idx[test_bitmaps[idx]] += 1
+            store_idx[test_labels[idx]] += 1

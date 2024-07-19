@@ -19,12 +19,12 @@ import models
 '''
 2. Filter out some digits (only keep 4, 7, and 9):
 '''
-digits_to_exclude = [0, 1, 2, 3, 5, 6, 8]  # (only 4, 7, and 9 remain)
+digits_to_exclude = [0, 2, 3, 5, 6, 8]  # (only 1, 4, 7, and 9 remain)
 for digit in digits_to_exclude:
     training_bitmaps = training_bitmaps[(training_labels != digit)]
     training_labels = training_labels[(training_labels != digit)]
-    test_bitmaps = test_bitmaps[(test_labels == digit)]
-    test_labels = test_labels[(test_labels == digit)]
+    test_bitmaps = test_bitmaps[(test_labels != digit)]
+    test_labels = test_labels[(test_labels != digit)]
 
 '''
 3. Convert the bitmaps to Hz by dividing each pixel value by .
@@ -42,22 +42,27 @@ utils.show_first_n_digits(training_bitmaps, training_labels,
 '''
 5. Define the training and testing proceedure:
 '''
-def train_model(train_items=1000, eval_items=1):
-
+def train_model(train_items=500, eval_items=1, restore_from_disk=False):
     seed(0)
 
+    file_name_of_model = 'trainall_but_0_epoch_1_eineuron_1000'
     print('setting up the model...')
-    model = models.CerebellarCircuitModel(debug=True)
 
-    print('training the model...')
-    model.train(training_bitmaps[:train_items], epoch=1)
+    # Note: putting things in debug mode makes the file enormous and it.
+    #       If you do it, use < 100 examples in training data!
+    model = models.CerebellarCircuitModel(debug=False)
 
-    print('writing the model to disk...')
-    model.net.store('train', 'train_4_7_9_epoch_1_eineuron_1000')
-    # model.net.restore('train', 'trainall_but_0_epoch_1_eineuron_1000')
+    if restore_from_disk:
+        print('restoring model from disk...')
+        model.net.restore('train', filename=file_name_of_model)
+    else:
+        print(f'training the model for {train_items} items...')
+        model.train(training_bitmaps[:train_items], epoch=1)
+        print('writing the model to disk...')
+        model.net.store('train', filename=file_name_of_model)
 
     print('evaluating the model with test data...')
-    model.evaluate(test_bitmaps[:eval_items], test_bitmaps)
+    model.evaluate(test_bitmaps[:eval_items], test_labels)
 
 
-train_model()
+train_model(train_items=500, restore_from_disk=False)

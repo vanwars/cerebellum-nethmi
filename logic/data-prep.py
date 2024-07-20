@@ -42,7 +42,7 @@ utils.show_first_n_digits(training_bitmaps, training_labels,
 '''
 5. Define the training and testing proceedure:
 '''
-def train_model(train_items=10, eval_items=9, restore_from_disk=False):
+def train_model(train_items=10, eval_items=20, restore_from_disk=False):
     seed(0)
 
     file_name_of_model = 'trainall_but_0_epoch_1_eineuron_1000'

@@ -6,9 +6,15 @@ from formulas import FORMULAS
 from constants import *
 
 
+# Seems like a lot of code came from here:
+# https://www.kaggle.com/code/dlarionov/mnist-spiking-neural-network
+
+
 class SpikingNeuralNetwork():
     def __init__(self):
+        self.initialize_network()
 
+    def initialize_network(self):
         # 1. create the input neurons:
         self.poisson_group = PoissonGroup(
             input_neuron_size, rates=np.zeros(input_neuron_size)*Hz, name='PG'
@@ -66,6 +72,7 @@ class SpikingNeuralNetwork():
         )
         self.net.run(0*second)
 
+        
     def __getitem__(self, key):
         return self.net[key]
 
@@ -91,12 +98,26 @@ class SpikingNeuralNetwork():
     # not sure what this function does exactly. I think it makes spike
     # trains out of the test data and saves the data as a python dictionary.
     # However, I'm unclear re: whether this is an evaluation.
+
+    # Hmm: Actually, I think what's happening here is that the other
+    # program needs 1 file for each set of digits to test. So what *ought
+    # to be happening is that the program should output 1 file per number set.
     def evaluate(self, X, test_labels):
         self.net['S1'].lr = 0  # stdp off
+
+        # what is the purpose of the store_idx
         store_idx = numpy.zeros(10).astype(int)
         for idx in range(len(X)):
+            print(f'{idx} out of {len(X)}')
 
-            print(str(idx), str(store_idx[idx]), str(store_idx[test_labels[idx]]))
+            # not really understanding the output files. they don't match up with the
+            # other logic:
+            # print(
+            #     idx, 
+            #     test_labels[idx], 
+            #     store_idx[idx], 
+            #     store_idx[test_labels[idx]]
+            # )
 
             # rate monitor to count spikes
             mon = SpikeMonitor(self.net['EG'])
@@ -106,9 +127,12 @@ class SpikingNeuralNetwork():
             self.net['PG'].rates = X[idx].ravel()*Hz
             self.net.run(5*second)
 
+            # file_name = "MNIST_epoch1_eineuron1000_train1to9/spike_dict_label_" + \
+            #     str(store_idx[idx]) + "_instance_" + \
+            #     str(store_idx[test_labels[idx]])+".txt"
             file_name = "MNIST_epoch1_eineuron1000_train1to9/spike_dict_label_" + \
-                str(store_idx[idx]) + "_instance_" + \
-                str(store_idx[test_labels[idx]])+".txt"
+                str(test_labels[idx]) + "_instance_" + \
+                str(idx)+".txt"
             print(file_name)
             f = open(file_name, "w")
             f.write(str(mon.spike_trains()))
